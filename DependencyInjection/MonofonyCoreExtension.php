@@ -14,6 +14,10 @@ declare(strict_types=1);
 namespace Monofony\Bundle\CoreBundle\DependencyInjection;
 
 use Doctrine\Common\EventSubscriber;
+use Monofony\Component\Admin\Dashboard\DashboardStatisticsProvider;
+use Monofony\Component\Admin\Dashboard\Statistics\StatisticInterface;
+use Monofony\Component\Admin\Menu\AdminMenuBuilderInterface;
+use Monofony\Contracts\Admin\Dashboard\DashboardStatisticsProviderInterface;
 use Monofony\Contracts\Front\Menu\AccountMenuBuilderInterface;
 use Sylius\Component\Customer\Context\CustomerContextInterface;
 use Sylius\Component\User\Canonicalizer\CanonicalizerInterface;
@@ -23,7 +27,7 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\Extension;
 use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
 
-class MonofonyCoreBundleExtension extends Extension
+class MonofonyCoreExtension extends Extension
 {
     /**
      * {@inheritdoc}
@@ -40,6 +44,9 @@ class MonofonyCoreBundleExtension extends Extension
         $this->tagCustomerContext($container);
         $this->tagDoctrineEventSubscribers($container);
         $this->buildAccountMenu($container);
+        $this->buildDashboardServices($container);
+        $this->buildAdminMenu($container);
+        $this->registerDashboardStatisticsProvider($container);
     }
 
     private function registerSomeSyliusAliases(ContainerBuilder $container): void
@@ -71,5 +78,38 @@ class MonofonyCoreBundleExtension extends Extension
                 'method' => 'createMenu',
                 'alias' => 'app.account',
             ]);
+    }
+
+    private function buildDashboardServices(ContainerBuilder $container): void
+    {
+        if (!interface_exists(StatisticInterface::class)) {
+            return;
+        }
+
+        $container->registerForAutoconfiguration(StatisticInterface::class)
+            ->addTag('monofony.dashboard_statistic');
+    }
+
+    private function buildAdminMenu(ContainerBuilder $container): void
+    {
+        if (!interface_exists(AdminMenuBuilderInterface::class)) {
+            return;
+        }
+
+        $container->registerForAutoconfiguration(AdminMenuBuilderInterface::class)
+            ->addTag('knp_menu.menu_builder', [
+                'method' => 'createMenu',
+                'alias' => 'app.admin.main',
+            ]);
+    }
+
+    private function registerDashboardStatisticsProvider(ContainerBuilder $container): void
+    {
+        if (!class_exists(DashboardStatisticsProvider::class)) {
+            return;
+        }
+
+        $container->register('monofony.admin.dashboard_statistics_provider', DashboardStatisticsProvider::class);
+        $container->setAlias(DashboardStatisticsProviderInterface::class, 'monofony.admin.dashboard_statistics_provider');
     }
 }
