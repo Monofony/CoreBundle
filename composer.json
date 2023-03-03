@@ -4,14 +4,14 @@
     "description": "Monofony core bundle.",
     "license": "MIT",
     "require": {
-        "php": "^8.0",
-        "symfony/config": "5.4.*",
-        "symfony/dependency-injection": "5.4.*",
-        "symfony/http-foundation": "5.4.*",
-        "symfony/http-kernel": "5.4.*"
+        "php": "^8.1",
+        "symfony/config": "^6.1",
+        "symfony/dependency-injection": "^6.1",
+        "symfony/http-foundation": "^6.1",
+        "symfony/http-kernel": "^6.1"
     },
     "require-dev": {
-        "phpstan/phpstan": "^0.12"
+        "phpstan/phpstan": "^1.5"
     },
     "conflict": {
         "symfony/symfony": "*"
@@ -37,7 +37,7 @@
     ],
     "extra": {
         "branch-alias": {
-            "dev-master": "0.8-dev"
+            "dev-master": "0.10-dev"
         }
     }
 }
