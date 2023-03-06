@@ -19,6 +19,7 @@ use Monofony\Component\Admin\Dashboard\Statistics\StatisticInterface;
 use Monofony\Component\Admin\Menu\AdminMenuBuilderInterface;
 use Monofony\Contracts\Admin\Dashboard\DashboardStatisticsProviderInterface;
 use Monofony\Contracts\Api\Identifier\AppUserIdentifierNormalizerInterface;
+use Monofony\Contracts\Api\OpenApi\Factory\AppAuthenticationTokenOpenApiFactoryInterface;
 use Monofony\Contracts\Front\Menu\AccountMenuBuilderInterface;
 use Sylius\Component\Customer\Context\CustomerContextInterface;
 use Sylius\Component\User\Canonicalizer\CanonicalizerInterface;
@@ -44,7 +45,8 @@ class MonofonyCoreExtension extends Extension
         $this->registerSomeSyliusAliases($container);
         $this->tagCustomerContext($container);
         $this->tagDoctrineEventSubscribers($container);
-        $this->tagApiPlatformIdentiferNormalizer($container);
+        $this->tagApiPlatformIdentifierNormalizer($container);
+        $this->tagOpenApiFactories($container);
         $this->buildAccountMenu($container);
         $this->buildDashboardServices($container);
         $this->buildAdminMenu($container);
@@ -79,17 +81,30 @@ class MonofonyCoreExtension extends Extension
         }
 
         $container->registerForAutoconfiguration(EventSubscriber::class)
-            ->addTag('doctrine.event_subscriber');
+            ->addTag('doctrine.event_subscriber')
+        ;
     }
 
-    private function tagApiPlatformIdentiferNormalizer(ContainerBuilder $container): void
+    private function tagApiPlatformIdentifierNormalizer(ContainerBuilder $container): void
     {
         if (!interface_exists(AppUserIdentifierNormalizerInterface::class)) {
             return;
         }
 
         $container->registerForAutoconfiguration(AppUserIdentifierNormalizerInterface::class)
-            ->addTag('api_platform.identifier.denormalizer', ['priority' => -10]);
+            ->addTag('api_platform.identifier.denormalizer', ['priority' => -10])
+        ;
+    }
+
+    private function tagOpenApiFactories(ContainerBuilder $container): void
+    {
+        if (!interface_exists(AppAuthenticationTokenOpenApiFactoryInterface::class)) {
+            return;
+        }
+
+        $container->registerForAutoconfiguration(AppAuthenticationTokenOpenApiFactoryInterface::class)
+            ->addTag('monofony.openapi.factory.app_authentication_token')
+        ;
     }
 
     private function buildAccountMenu(ContainerBuilder $container): void

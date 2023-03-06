@@ -13,20 +13,21 @@ declare(strict_types=1);
 
 namespace Monofony\Bundle\CoreBundle\DependencyInjection\Compiler;
 
-use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Reference;
 
-final class RegisterObjectManagerAliasPass implements CompilerPassInterface
+final class RegisterOpenApiFactoriesPass implements CompilerPassInterface
 {
     public function process(ContainerBuilder $container): void
     {
-        if (!interface_exists(ObjectManager::class)) {
-            return;
-        }
+        foreach ($container->findTaggedServiceIds('monofony.openapi.factory.app_authentication_token') as $id => $attributes) {
+            $normalizerDefinition = $container->findDefinition($id);
 
-        if (!$container->hasDefinition(ObjectManager::class)) {
-            $container->setAlias(ObjectManager::class, 'doctrine.orm.default_entity_manager');
+            $normalizerDefinition
+                ->setDecoratedService('api_platform.openapi.factory', null, -10)
+                ->addArgument(new Reference($id.'.inner'))
+            ;
         }
     }
 }
